@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Un clavo y una mesa — Franco Cattani</title>
+<meta name="description" content="Jesús como personaje histórico y las primeras comunidades, contados desde lo que se puede tocar">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Space+Mono:wght@400;700&family=Zilla+Slab:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --paper: #ECEEF1;
+  --paper-2: #E0E4E9;
+  --ink: #121820;
+  --muted: #5A6570;
+  --rule: #C5CCD4;
+  --accent: #245A8C;
+  --accent-wash: #DEE8F2;
+  --radius: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0C1119;
+    --paper-2: #121A24;
+    --ink: #E2E8F0;
+    --muted: #9AA5B1;
+    --rule: #2A3544;
+    --accent: #7BB2E8;
+    --accent-wash: #182739;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0C1119;
+  --paper-2: #121A24;
+  --ink: #E2E8F0;
+  --muted: #9AA5B1;
+  --rule: #2A3544;
+  --accent: #7BB2E8;
+  --accent-wash: #182739;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Newsreader", Georgia, "Times New Roman", serif;
+  font-size: 1.125rem;
+  line-height: 1.65;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Progress */
+.progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 100;
+  background: transparent;
+  pointer-events: none;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transform-origin: left center;
+}
+
+/* Top bar */
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1.25rem;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.marca {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.marca b { color: var(--ink); font-weight: 400; }
+.barra-actions { display: flex; align-items: center; gap: 0.5rem; }
+.tema, .toc-toggle {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.65rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tema:hover, .toc-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.kbd-hints {
+  display: none;
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  gap: 0.55rem;
+}
+@media (min-width: 900px) {
+  .kbd-hints { display: flex; }
+  .toc-toggle { display: none; }
+}
+.kbd {
+  display: inline-block;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0 0.28rem;
+  color: var(--ink);
+  background: var(--paper-2);
+}
+
+/* Layout */
+.shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+@media (min-width: 980px) {
+  .shell {
+    grid-template-columns: 14.5rem minmax(0, 40rem);
+    gap: 2.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    justify-content: center;
+  }
+}
+
+/* TOC */
+.toc {
+  display: none;
+}
+.toc.is-open { display: block; }
+@media (min-width: 980px) {
+  .toc {
+    display: block;
+    position: sticky;
+    top: 3.5rem;
+    align-self: start;
+    padding: 1.25rem 0 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow: auto;
+  }
+  .toc.is-open { display: block; }
+}
+.toc-label {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.85rem;
+}
+.toc-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-left: 1px solid var(--rule);
+}
+.toc-link {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem 0.4rem 0.7rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-family: "Zilla Slab", Georgia, serif;
+  font-size: 0.86rem;
+  line-height: 1.25;
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.toc-link:hover { color: var(--ink); background: var(--accent-wash); }
+.toc-link.is-active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-wash);
+}
+.toc-n {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: inherit;
+  opacity: 0.85;
+}
+.toc-t { font-weight: 500; }
+
+/* Hero */
+.hero {
+  padding: 2.75rem 0 1.5rem;
+  position: relative;
+}
+.eyebrow {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 1rem;
+}
+h1 {
+  font-family: "Zilla Slab", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 2.85rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+.deck {
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 1.75rem;
+  max-width: 34rem;
+}
+.rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 1.5rem 0 2rem;
+}
+
+/* Fichas motif */
+.fichas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  max-width: 18rem;
+  margin: 0 0 2rem;
+}
+.ficha {
+  aspect-ratio: 3 / 4;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  position: relative;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent);
+  opacity: 0;
+  transform: translateY(10px) rotate(0deg);
+  animation: ficha-in 0.7s ease forwards;
+}
+.ficha:nth-child(1) { animation-delay: 0.05s; transform: translateY(10px) rotate(-2.5deg); }
+.ficha:nth-child(2) { animation-delay: 0.15s; transform: translateY(10px) rotate(1.8deg); }
+.ficha:nth-child(3) { animation-delay: 0.25s; transform: translateY(10px) rotate(-1.2deg); }
+.ficha:nth-child(4) { animation-delay: 0.35s; transform: translateY(10px) rotate(2.2deg); }
+.ficha::after {
+  content: "";
+  position: absolute;
+  inset: 18% 14% auto;
+  height: 2px;
+  background: var(--rule);
+  opacity: 0.9;
+}
+.ficha::before {
+  content: "";
+  position: absolute;
+  inset: 28% 14% auto;
+  height: 2px;
+  width: 55%;
+  background: var(--rule);
+  opacity: 0.65;
+}
+@keyframes ficha-in {
+  to { opacity: 1; transform: translateY(0) rotate(var(--r, 0deg)); }
+}
+.ficha:nth-child(1) { --r: -2.5deg; }
+.ficha:nth-child(2) { --r: 1.8deg; }
+.ficha:nth-child(3) { --r: -1.2deg; }
+.ficha:nth-child(4) { --r: 2.2deg; }
+.fichas.float .ficha {
+  animation: ficha-in 0.7s ease forwards, ficha-float 7s ease-in-out infinite;
+}
+.fichas.float .ficha:nth-child(2) { animation-delay: 0.15s, 1.2s; }
+.fichas.float .ficha:nth-child(3) { animation-delay: 0.25s, 2.1s; }
+.fichas.float .ficha:nth-child(4) { animation-delay: 0.35s, 0.6s; }
+@keyframes ficha-float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-4px) rotate(var(--r, 0deg)); }
+}
+
+/* Panels */
+.panel {
+  margin: 0 0 2.75rem;
+  padding: 1.5rem 0 0.25rem;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+  border-top: 1px solid var(--rule);
+}
+.panel.is-in {
+  opacity: 1;
+  transform: none;
+}
+.panel-head { margin-bottom: 1rem; }
+h2 {
+  font-family: "Zilla Slab", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+  line-height: 1.25;
+  margin: 0;
+  text-wrap: balance;
+}
+.panel-body p {
+  margin: 0 0 1.15rem;
+  text-wrap: pretty;
+}
+.panel-body p:last-child { margin-bottom: 0; }
+em { font-style: italic; }
+
+/* Destacado */
+.destacado {
+  font-weight: 500;
+  background: linear-gradient(transparent 62%, var(--accent-wash) 62%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  position: relative;
+}
+.destacado::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.7s ease;
+}
+.destacado.is-lit::after {
+  transform: scaleX(1);
+}
+
+/* Coda cards */
+.coda-grid {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+.coda-card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+  overflow: hidden;
+}
+.coda-card[open] {
+  background: var(--accent-wash);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--rule));
+}
+.coda-card summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  font-family: "Zilla Slab", Georgia, serif;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.coda-card summary::-webkit-details-marker { display: none; }
+.coda-n {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+.coda-title { color: var(--ink); }
+.coda-body {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--rule);
+}
+.coda-body p { margin: 0.85rem 0 0; }
+
+.pie {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  justify-content: space-between;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .ficha, .fichas.float .ficha {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .destacado::after {
+    transition: none;
+    transform: scaleX(1);
+  }
+  .toc-link { transition: none; }
+}
+
+@media print {
+  .progress, .barra, .toc, .kbd-hints, .fichas { display: none !important; }
+  body { background: #fff; color: #000; }
+  .panel { opacity: 1; transform: none; border-top-color: #999; }
+  .shell { display: block; max-width: none; }
+}
+</style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span id="prog"></span></div>
+
+  <div class="barra">
+    <div class="marca"><b>Ensayo</b> · Franco Cattani</div>
+    <div class="barra-actions">
+      <div class="kbd-hints" aria-hidden="true">
+        <span><span class="kbd">↑</span><span class="kbd">↓</span> / <span class="kbd">j</span><span class="kbd">k</span> secciones</span>
+        <span><span class="kbd">T</span> tema</span>
+      </div>
+      <button type="button" class="toc-toggle" id="tocBtn" aria-expanded="false" aria-controls="toc">Índice</button>
+      <button type="button" class="tema" id="temaBtn" aria-pressed="false" title="Alternar claro/oscuro (T)">Claro / oscuro</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <aside class="toc" id="toc" aria-label="Índice de secciones">
+      <p class="toc-label">Índice</p>
+      <nav class="toc-nav">
+<a href="#i" class="toc-link" data-section="i"><span class="toc-n">I</span><span class="toc-t">El talón</span></a>
+<a href="#ii" class="toc-link" data-section="ii"><span class="toc-n">II</span><span class="toc-t">Lo que un historiador puede agarrar</span></a>
+<a href="#iii" class="toc-link" data-section="iii"><span class="toc-n">III</span><span class="toc-t">El fondo del pozo</span></a>
+<a href="#iv" class="toc-link" data-section="iv"><span class="toc-n">IV</span><span class="toc-t">La fórmula que Pablo recibió</span></a>
+<a href="#v" class="toc-link" data-section="v"><span class="toc-n">V</span><span class="toc-t">La mesa de Antioquía</span></a>
+<a href="#vi" class="toc-link" data-section="vi"><span class="toc-n">VI</span><span class="toc-t">El manual contra los vivos</span></a>
+<a href="#vii" class="toc-link" data-section="vii"><span class="toc-n">VII</span><span class="toc-t">Una calle de Dura-Europos</span></a>
+<a href="#viii" class="toc-link" data-section="viii"><span class="toc-n">VIII</span><span class="toc-t">Revelación: lo que la historia le devuelve a este trabajo</span></a>
+<a href="#coda" class="toc-link" data-section="coda"><span class="toc-n">Coda</span><span class="toc-t">lo que habría que excavar</span></a>
+      </nav>
+    </aside>
+
+    <main id="main">
+      <header class="hero" id="inicio">
+        <p class="eyebrow">Ensayo · Jesús histórico · primeras comunidades · fuentes</p>
+        <h1>Un clavo y una mesa</h1>
+        <p class="deck">Jesús como personaje histórico y las primeras comunidades, contados desde lo que se puede tocar</p>
+        <div class="fichas float" aria-hidden="true" title="Fichas">
+          <div class="ficha"></div>
+          <div class="ficha"></div>
+          <div class="ficha"></div>
+          <div class="ficha"></div>
+        </div>
+        <hr class="rule">
+      </header>
+
+<section class="panel" id="i" data-section="i" tabindex="-1" aria-labelledby="h-i">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo I</p>
+    <h2 id="h-i">I. El talón</h2>
+  </header>
+  <div class="panel-body">
+<p>Junio de 1968, Giv&apos;at ha-Mivtar, norte de Jerusalén. Una cuadrilla abre zanjas para un barrio nuevo y rompe el techo de una tumba judía del siglo I. Adentro hay osarios: cajas de piedra caliza donde se guardaban los huesos un año después del entierro, cuando la carne ya se había ido.</p>
+<p>En uno de ellos, con el nombre Yehohanan raspado en la tapa, el arqueólogo Vassilios Tzaferis encuentra un hueso de talón derecho atravesado por un clavo de hierro de unos once centímetros. El clavo está doblado en la punta: pegó contra un nudo de la madera y no salió. Entre la cabeza del clavo y el hueso quedan restos de una tablita, y en el otro extremo, madera de olivo.</p>
+<p>Un hombre de entre veinte y treinta años, crucificado en Jerusalén en el siglo I, y lo único que quedó de la ejecución fue eso: el clavo que el verdugo no pudo recuperar porque se había trabado.</p>
+<p>Es la única evidencia física de una crucifixión romana que existe en todo el mundo. Del ajusticiado más famoso de la historia no tenemos un hueso, un clavo ni una tabla. Tenemos el talón de un desconocido, muerto del mismo modo, en la misma ciudad, en las mismas décadas.</p>
+<p>Ese es el problema del historiador, y conviene aceptarlo antes de empezar: <strong class="destacado">lo que se puede agarrar de Jesús es poco, es tardío y viene casi todo de gente que ya lo adoraba.</strong> Con eso hay que trabajar. Y con eso, sorprendentemente, se puede decir bastante.</p>
+  </div>
+</section>
+<section class="panel" id="ii" data-section="ii" tabindex="-1" aria-labelledby="h-ii">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo II</p>
+    <h2 id="h-ii">II. Lo que un historiador puede agarrar</h2>
+  </header>
+  <div class="panel-body">
+<p>Empecemos por lo que escribió gente que no era cristiana.</p>
+<p>Hacia el 93 o 94, Flavio Josefo —un general judío que se pasó a los romanos y terminó escribiendo la historia de su pueblo en Roma— menciona a Jesús dos veces en sus <em>Antigüedades judías</em>. La segunda mención es la que nadie discute: cuenta que en el año 62 el sumo sacerdote Anás hizo lapidar a «Santiago, el hermano de Jesús, llamado el Cristo». La primera, el famoso <em>Testimonium</em>, llegó hasta nosotros manipulada por copistas cristianos que le agregaron frases de credo; la mayoría de los especialistas reconoce debajo un núcleo original donde Josefo habla de un hombre sabio, autor de obras sorprendentes, condenado a la cruz por Pilato a instancias de los notables, y de un grupo de seguidores que no desapareció.</p>
+<p>Hacia el 116, Tácito, en los <em>Anales</em> (15,44), explica que Nerón culpó del incendio de Roma del año 64 a los cristianos, y para que se entienda quiénes eran aclara que su nombre viene de Cristo, ejecutado bajo Tiberio por el procurador Poncio Pilato, y que la «superstición perniciosa» reapareció después de aplastada. Describe lo que se les hizo: vestidos con pieles de animales para que los despedazaran los perros, crucificados, quemados como antorchas para iluminar los jardines de noche.</p>
+<p>Hacia el 112, Plinio el Joven, gobernador de Bitinia, le escribe al emperador Trajano para preguntar qué hacer con ellos. Volveremos a esa carta, porque es una de las descripciones más valiosas que existen de lo que hacía una comunidad cristiana un día cualquiera.</p>
+<p>Y Suetonio, en su vida de Claudio, anota de paso que el emperador expulsó de Roma a los judíos, que andaban alborotados «por instigación de Chrestus». Fue alrededor del 49. Los Hechos de los Apóstoles mencionan a una pareja, Aquila y Priscila, que llegaron a Corinto expulsados de Roma por ese decreto.</p>
+<p>Del lado material hay tres objetos. En 1961, en el teatro de Cesarea Marítima, apareció una piedra con una inscripción latina dedicada a Tiberio por «[Po]ncio Pilato, [pref]ecto de Judea»: la primera confirmación física de que Pilato existió, y de paso una corrección a Tácito, que le puso un cargo posterior. En 1990, en Jerusalén, un osario ricamente decorado con el nombre «Yehosef bar Qayafa», que casi seguro es de la familia del sumo sacerdote Caifás. Y el talón de Yehohanan.</p>
+<p>Ahora las fuentes cristianas, ordenadas por fecha y no por el orden del Nuevo Testamento, que confunde.</p>
+<p>Lo más antiguo que existe es una carta. Pablo escribe la Primera a los Tesalonicenses alrededor del año 50, unos veinte años después de la crucifixión. Sus otras cartas siguen hasta el 58 más o menos. Los evangelios vienen después: Marcos hacia el 70, Mateo y Lucas en los años 80, Juan en los 90. Los Hechos, al final. Todo el material narrativo sobre Jesús se escribió entre cuarenta y setenta años después de su muerte, por gente que creía en él, en griego, sobre un hombre que hablaba arameo.</p>
+<p>Y sin embargo hay un puñado de cosas que casi ningún historiador serio discute, sea creyente o no, y vale la pena ver <strong>por qué</strong> no las discute. El criterio se llama de incomodidad: <strong class="destacado">lo que una iglesia nunca habría inventado, casi seguro pasó.</strong></p>
+<p>Jesús fue bautizado por Juan, en un bautismo para el perdón de los pecados. Los evangelios se retuercen para explicarlo, y se retuercen porque no podían borrarlo. Eligió doce, y uno de los doce lo entregó: nadie inventa un traidor adentro del grupo fundador. Comía con recaudadores de impuestos y con gente de mala fama, y se lo reprocharon en su cara. Hizo cosas que sus contemporáneos, incluidos sus enemigos, describieron como prodigios; la polémica judía posterior no negó los hechos, los atribuyó a hechicería. Provocó un incidente en el Templo durante una Pascua. Y murió en una cruz por orden de un prefecto romano, con un cartel que decía «rey de los judíos», una acusación política que ninguna comunidad perseguida habría querido pegarle a su fundador.</p>
+<p>Venía de Nazaret, un pueblo de unos pocos cientos de habitantes que no aparece en la Biblia hebrea, ni en Josefo, ni en el Talmud, ni en ningún texto anterior a los evangelios. Marcos lo llama <em>tekton</em>, un artesano de la construcción, madera o piedra. A seis kilómetros de Nazaret, Herodes Antipas estaba reconstruyendo Séforis durante toda la juventud de Jesús, una obra enorme que necesitaba manos; que un tekton de la aldea de al lado haya trabajado ahí es una inferencia plausible que muchos hacen y nadie puede probar.</p>
+<p>Hablaba arameo. Marcos conservó cuatro frases suyas en el idioma original, adentro del griego.</p>
+<p>Eso es lo que se puede agarrar. Un artesano galileo, bautizado por un profeta del desierto, que anunció el reino de Dios en parábolas, comió con quien no debía, armó un grupo de doce con un traidor adentro, y murió crucificado en Jerusalén alrededor del año 30. Poco. Y firme.</p>
+  </div>
+</section>
+<section class="panel" id="iii" data-section="iii" tabindex="-1" aria-labelledby="h-iii">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo III</p>
+    <h2 id="h-iii">III. El fondo del pozo</h2>
+  </header>
+  <div class="panel-body">
+<p>En 1906 Albert Schweitzer —que después sería médico en Gabón y premio Nobel— publicó un repaso de un siglo de investigación sobre el Jesús histórico y encontró un patrón devastador. Cada época había descubierto un Jesús que se le parecía. El racionalista del siglo XVIII encontró un maestro de moral racional. El romántico encontró un genio religioso. El liberal alemán encontró un predicador del amor al padre y la fraternidad universal, sin milagros ni fin del mundo.</p>
+<p>Tres años después, el jesuita George Tyrrell lo dijo con una imagen que quedó para siempre: el Jesús que los liberales veían al fondo de diecinueve siglos de oscuridad católica era el reflejo de una cara protestante liberal en el fondo de un pozo.</p>
+<p>El patrón siguió. El Jesús revolucionario de los años setenta. El sabio de aforismos del Jesus Seminar en los noventa, con sus votaciones de bolitas de colores. El campesino mediterráneo de Crossan. El profeta apocalíptico de Sanders y de Ehrman, que anunció un fin que no llegó. Cada uno con buenas razones, y cada uno sospechosamente parecido a su autor.</p>
+<p>Acá el capítulo se conecta con la frase que abrió todo este trabajo. Jesús es el caso más puro que existe de <strong class="destacado">una figura imaginada tapando a una persona concreta</strong>, con el agravante de que la persona concreta no puede corregir nada, porque está muerta hace dos mil años y todo lo que dijo lo anotaron otros. El polo interno gira solo. Y cada época, cada iglesia y cada historiador produce su Jesús a medida, sin que el original pueda desmentir.</p>
+<p>Lo único que funciona como polo externo, lo único que corrige, es el residuo incómodo. El bautismo que no debería haber necesitado. El traidor. La cruz maldita —«maldito el que cuelga de un madero», dice el Deuteronomio, y Pablo tuvo que darse vuelta como una media para explicar por qué su mesías había muerto exactamente así—. Lo que nadie habría inventado es lo único que se resiste a ser inventado de nuevo.</p>
+<p>Marcos dejó cuatro palabras en arameo adentro del griego. El criterio de incomodidad hace lo mismo: conserva, en el medio de dos mil años de reescritura, las piedritas que no se disuelven.</p>
+  </div>
+</section>
+<section class="panel" id="iv" data-section="iv" tabindex="-1" aria-labelledby="h-iv">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo IV</p>
+    <h2 id="h-iv">IV. La fórmula que Pablo recibió</h2>
+  </header>
+  <div class="panel-body">
+<p>Hay un texto que los historiadores tratan con más cuidado que cualquier otro, y no está en los evangelios.</p>
+<p>En la Primera a los Corintios, escrita hacia el 54 o 55, Pablo dice que va a transmitir lo que él mismo recibió: que Cristo murió por los pecados según las Escrituras, que fue sepultado, que resucitó al tercer día, que se apareció a Cefas, después a los Doce, después a más de quinientos, después a Santiago, después a todos los apóstoles (1 Cor 15,3-7). El lenguaje está lleno de marcas de fórmula aprendida, de credo recitado; el propio Pablo lo presenta como material que le llegó hecho. La mayoría de los especialistas lo fecha a pocos años de la crucifixión, dentro de la primera década. Es lo más cerca del hecho que la historia puede llegar.</p>
+<p>Lo que ese texto prueba y lo que no conviene decirlo con precisión de escribano.</p>
+<p>No prueba una resurrección. Ningún método histórico puede establecer eso, y el que dice que sí está haciendo otra cosa. <strong class="destacado">Prueba que un grupo de judíos, a muy pocos años de una ejecución vergonzosa, afirmó que el ejecutado estaba vivo, reorganizó su vida entera alrededor de esa afirmación y la transmitió como fórmula fija.</strong> Prueba, además, algo que Larry Hurtado documentó durante décadas: que ese grupo empezó muy temprano a dirigirle a Jesús un tipo de devoción que un judío reservaba para Dios. Hay una oración en arameo conservada en griego, al final de la misma carta: <em>maranatha</em>, «Señor nuestro, ven». Viene de la comunidad primitiva de habla aramea. Le pedían a un crucificado que volviera, como se le pide a Dios.</p>
+<p>Ese es el dato fundacional de todo lo que sigue, y tiene la forma exacta de un capítulo anterior de este trabajo: <strong class="destacado">una comunidad entera construida sobre un vínculo con alguien que no está</strong>, y que afirma, contra toda evidencia disponible para un tercero, que el ausente contesta.</p>
+  </div>
+</section>
+<section class="panel" id="v" data-section="v" tabindex="-1" aria-labelledby="h-v">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo V</p>
+    <h2 id="h-v">V. La mesa de Antioquía</h2>
+  </header>
+  <div class="panel-body">
+<p>Alrededor del 48 o 49, en Antioquía, Pedro come con cristianos que no son judíos.</p>
+<p>Lo cuenta Pablo en la Carta a los Gálatas, en primera persona y con furia intacta (2,11-14). Pedro comía con los gentiles hasta que llegaron unos hombres enviados por Santiago desde Jerusalén. Entonces se retiró de la mesa. Los demás judíos hicieron lo mismo, y «hasta Bernabé» se dejó arrastrar. Pablo lo enfrentó delante de todos.</p>
+<p>Vale detenerse en la escena porque es el primer conflicto documentado del cristianismo, contado por uno de los que estaban, y es un conflicto sobre <strong class="destacado">con quién se puede comer.</strong></p>
+<p>Toda la estructura de puentes que este trabajo viene explorando estaba en juego en esa mesa. La brecha entre judíos y gentiles era la más honda del mundo antiguo: pureza alimentaria, circuncisión, siglos de separación protegida por la ley. Un grupo minúsculo de judíos galileos y de convertidos de Siria estaba decidiendo si el puente cruzaba esa brecha o no, y lo decidía con el cuerpo, sentándose o levantándose de una mesa. El concilio de Jerusalén, que Pablo y los Hechos cuentan a su manera, resolvió que los gentiles no necesitaban circuncidarse. Antioquía muestra lo que costó convertir esa decisión en cena.</p>
+<p>Unos años más tarde, en Corinto, la misma mesa falla por otra brecha. Pablo escribe indignado porque cuando se juntan para la cena del Señor, cada uno come lo suyo, unos se quedan con hambre y otros se emborrachan (1 Cor 11,17-22). Los que llegaban temprano —los que no tenían patrón ni jornada— comían primero. Los que llegaban del trabajo encontraban el plato vacío. El puente entre judío y gentil había cruzado; el puente entre el rico y el esclavo se estaba rompiendo en la misma mesa, en la misma cena, por los mismos motivos por los que se rompe hoy.</p>
+<p>Wayne Meeks reconstruyó en <em>Los primeros cristianos urbanos</em> (1983) cómo eran esos grupos. Se reunían en casas —la de Prisca y Aquila, la de Gayo, la de Filemón— donde entraban treinta o cincuenta personas en el comedor y el patio. No eran pobres de solemnidad ni ricos: eran gente con estatus desparejo. Artesanos con plata pero sin linaje. Libertos. Mujeres con casa propia. Una tal Febe, diaconisa de Cencreas, a quien Pablo llama su protectora y le confía la carta a los Romanos. Una tal Junia, «notable entre los apóstoles». Un tal Erasto, tesorero de la ciudad, y en Corinto apareció en 1929 una losa con un Erasto que pagó el pavimento de una plaza, aunque nadie puede jurar que sea el mismo.</p>
+<p>Y había un puente hecho de dinero, que Pablo organizó durante años: la colecta de las iglesias de Grecia y Asia para «los pobres de los santos de Jerusalén». Gentiles de Acaya mandando plata a judíos de Judea. Hechos pinta la comunidad de Jerusalén teniendo «todo en común», vendiendo campos y repartiendo; las cartas de Pablo muestran a esa misma comunidad necesitando ayuda del exterior a los veinte años. Las dos cosas pueden ser ciertas. La primera es la comunidad soñada. La segunda es la que pedía plata.</p>
+  </div>
+</section>
+<section class="panel" id="vi" data-section="vi" tabindex="-1" aria-labelledby="h-vi">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo VI</p>
+    <h2 id="h-vi">VI. El manual contra los vivos</h2>
+  </header>
+  <div class="panel-body">
+<p>En 1873, en la biblioteca del Metoquio del Santo Sepulcro en Constantinopla, el metropolita Filoteo Bryennios encontró un manuscrito del siglo XI que contenía un texto perdido desde la antigüedad: la <em>Didajé</em>, «la enseñanza de los doce apóstoles». Es un manual de comunidad de alrededor del año 100, quizás antes, y es lo más parecido a un reglamento interno que tenemos del primer siglo.</p>
+<p>Dice cómo bautizar: en agua corriente; si no hay, en otra agua; si no hay fría, tibia; si no hay bastante, derramar tres veces sobre la cabeza. Dice cuándo ayunar: miércoles y viernes, «y no como los hipócritas», que ayunan lunes y jueves. Trae las oraciones de la cena.</p>
+<p>Y trae el capítulo que más dice sobre cómo era vivir en una de esas comunidades: el protocolo para los predicadores itinerantes. Si un profeta llega, recibirlo. Si se queda un día o dos, bien. <strong class="destacado">Si se queda tres, es un falso profeta.</strong> Si pide dinero, es un falso profeta. Si en éxtasis pide una mesa servida y después come de ella, es un falso profeta. La palabra que usa para el que vive de esto es un invento griego que no necesita traducción: <em>christémporos</em>, mercader de Cristo.</p>
+<p>Una comunidad que a los setenta años de la crucifixión ya tenía que defenderse de los vivos que se aprovechaban de ella.</p>
+<p>Doce años después, la carta de Plinio. Está en Bitinia, tiene denuncias anónimas contra cristianos, no sabe qué hacer y le escribe a Trajano (Cartas 10,96). Cuenta lo que averiguó: se reúnen un día fijo antes del amanecer, cantan un himno a Cristo «como a un dios», se comprometen con juramento a no robar, no cometer adulterio, no faltar a la palabra dada ni negar un depósito, y después se dispersan y vuelven a juntarse para comer una comida común y corriente. Para confirmarlo hizo torturar a dos esclavas a las que llamaban <em>ministrae</em>, diaconisas. No encontró nada, escribe, salvo «una superstición depravada y desmedida». Y agrega, preocupado, que los templos habían estado casi vacíos y la carne de los sacrificios no se vendía.</p>
+<p>Trajano le contesta corto: no los busques; si los denuncian y no reniegan, castigalos; las denuncias anónimas no valen. Esa fue la política del imperio durante más de un siglo.</p>
+<p>En 155, Justino le explica al emperador cómo es la reunión del domingo (<em>Primera Apología</em> 67). Se leen las memorias de los apóstoles y los profetas «mientras el tiempo lo permite». El que preside exhorta. Se reza de pie. Se traen pan, vino y agua; el que preside da gracias; se reparte; los diáconos llevan la parte a los ausentes. Y los que tienen, dan lo que quieren, y el que preside lo guarda para los huérfanos, las viudas, los enfermos, los presos y los forasteros de paso.</p>
+<p>Es la misa. Es la misma secuencia que en cualquier parroquia del conurbano el domingo que viene. Mil ochocientos setenta años de repetir lo mismo, con estructura, contra el ruido.</p>
+  </div>
+</section>
+<section class="panel" id="vii" data-section="vii" tabindex="-1" aria-labelledby="h-vii">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo VII</p>
+    <h2 id="h-vii">VII. Una calle de Dura-Europos</h2>
+  </header>
+  <div class="panel-body">
+<p>Hacia el 240, en una ciudad de guarnición sobre el Éufrates, en el borde oriental del imperio, alguien convirtió una casa en iglesia.</p>
+<p>Dura-Europos fue destruida por los persas alrededor del 256 y quedó enterrada bajo el terraplén que sus defensores levantaron contra la muralla. La excavaron en los años treinta. La casa cristiana tenía un patio, una sala grande hecha tirando una pared entre dos habitaciones, y un cuarto chico con una pileta bajo un arco: un baptisterio. En las paredes, las pinturas cristianas más antiguas que existen: el buen pastor, la curación del paralítico cargando su camilla, unas mujeres con antorchas yendo hacia una tumba.</p>
+<p>Y en la misma calle, a pocos metros, una sinagoga con las paredes cubiertas de frescos bíblicos de una riqueza que nadie esperaba, y un templo de Mitra. Tres comunidades cerradas, tres puertas, una calle de una ciudad de frontera.</p>
+<p>Un texto anónimo del siglo II, la <em>Carta a Diogneto</em>, describe cómo se veían a sí mismos. Los cristianos no se distinguen del resto ni por la tierra, ni por la lengua, ni por la ropa. Viven en sus ciudades como forasteros; comparten todo como ciudadanos y aguantan todo como extranjeros; toda tierra extraña es su patria y toda patria les es extraña. Se casan, tienen hijos y no abandonan a los recién nacidos —la exposición de bebés era práctica normal—. Comparten la mesa, no la cama. Lo que el alma es para el cuerpo, dice, son los cristianos para el mundo.</p>
+<p>Tertuliano, en Cartago, alrededor del 197, describió la caja común: cada uno pone una pequeña suma una vez por mes, si quiere y si puede, y con eso se entierra a los pobres, se mantiene a los huérfanos, a los viejos que no pueden trabajar, a los náufragos, a los que están en las minas o en la cárcel por causa de la fe. Y anota lo que decía la gente de afuera, con el tono que se quiera imaginar: <em>mirá cómo se quieren.</em></p>
+<p>El sociólogo Rodney Stark hizo las cuentas en 1996. Partiendo de unas mil personas alrededor del año 40, y suponiendo un crecimiento del cuarenta por ciento por década —que es la tasa de los mormones en el siglo XX y de algunos movimientos religiosos bien documentados—, se llega a algo así como seis millones hacia el 300, un diez por ciento del imperio. Los números son discutibles y se discuten. Los mecanismos que Stark propone son más firmes: la fe viajaba por redes existentes, de casa en casa, de pariente en pariente, y no por mensajes al aire. Y durante las dos grandes pestes del siglo II y III, cuando las ciudades se vaciaban de los que podían huir, los cristianos se quedaron a cuidar enfermos, cristianos y no cristianos; el obispo Dionisio de Alejandría lo dejó escrito hacia el 260. Cuidar a un enfermo de peste sin medicina reduce la mortalidad igual, con agua y comida. Los que sobrevivieron gracias a un vecino cristiano tenían una deuda, un vínculo y un motivo.</p>
+<p>Es un grupo cerrado que pasa las cuatro pruebas del capítulo anterior. La puerta abría desde adentro: el que renegaba se iba, y Plinio lo confirma. El cierre protegía una esfera —la mesa, la caja, el matrimonio— sin invadir las otras: pagaban impuestos, rezaban por el emperador. La creencia aguantó la calle: vivieron a metros de la sinagoga y del Mitreo durante generaciones. Y exportaban: cuidado de enfermos, entierro de pobres, hijos criados en lugar de expuestos.</p>
+<p>Dos objetos cierran este recorrido, uno de cada lado.</p>
+<p>En el Palatino, en Roma, alrededor del año 200, alguien rayó en una pared un hombre con cabeza de burro clavado en una cruz, otro hombre saludándolo y una frase: «Alexámenos adora a su dios». La imagen más antigua que existe de la crucifixión es una burla.</p>
+<p>Y en Meguido, en 2005, debajo del patio de una cárcel israelí, apareció un mosaico de alrededor del año 230 con una inscripción en griego: una mujer llamada Akeptous «ofreció la mesa a Dios Jesucristo como memorial». Un centurión pagó el piso. Es una de las inscripciones más antiguas que llaman Dios a Jesús, y la pagó una mujer, y está debajo de una prisión.</p>
+  </div>
+</section>
+<section class="panel" id="viii" data-section="viii" tabindex="-1" aria-labelledby="h-viii">
+  <header class="panel-head">
+    <p class="eyebrow">Capítulo VIII</p>
+    <h2 id="h-viii">VIII. Revelación: lo que la historia le devuelve a este trabajo</h2>
+  </header>
+  <div class="panel-body">
+<p>Jesús como personaje histórico es el caso límite de la frase que abrió todo. Un hombre concreto, tapado durante veinte siglos por figuras imaginadas que cada época produjo a su medida, sin que él pudiera desmentir ninguna. El único polo externo que queda es el residuo incómodo, y funciona exactamente igual que el arameo de Marcos: <strong class="destacado">lo que nadie habría inventado es lo único que resiste ser inventado de nuevo.</strong> Cualquier vínculo con alguien ausente, muerto, o simplemente lejano, tiene el mismo control de calidad disponible: fijarse en lo que uno nunca hubiera querido que fuera cierto del otro. Ahí está el otro de verdad.</p>
+<p>Y las primeras comunidades son el laboratorio de todos los mecanismos que este trabajo viene rastreando, funcionando juntos en la escala de una casa. Un vínculo con un ausente que la comunidad afirma que contesta. Un puente cruzando la brecha más honda del mundo antiguo, construido con lo más concreto que existe, que es sentarse a comer. Una mesa donde el mismo puente falla por otra brecha, la de clase, a los veinticinco años de fundado. Redundancia pura: la misma cena, las mismas palabras, todas las semanas, contra el ruido de un imperio. Un grupo cerrado que exporta, con la puerta abriendo desde adentro. Y desde el año 15, el problema del vocero: Pablo, Santiago y Pedro peleando en público sobre qué quería el ausente, sin que el ausente pudiera intervenir, con la misma estructura lógica que «lo que él hubiera querido».</p>
+<p>Sobre todo eso hay que decir algo sin dulzura. La comunidad primitiva que la nostalgia pastoral invoca —la de «todo en común», la de un solo corazón— es en buena medida el resumen idealizado de Lucas, escrito cincuenta años después. La comunidad que documentan las cartas, escritas en el momento, tenía borrachos en la cena del Señor, un traidor en la mesa fundacional, un apóstol que se levantó de la mesa cuando llegaron los de Jerusalén, mercaderes de Cristo a los que hubo que ponerles plazo de tres días, y una iglesia madre que necesitaba que le mandaran plata. Esa comunidad concreta, sin embargo, cruzó la brecha judío-gentil, cuidó enfermos de peste y se multiplicó por seis mil. La imaginada no hizo nada de eso, porque no existió.</p>
+<p>Un historiador termina este capítulo con un clavo en la mano. Un creyente, con una mesa. Los dos objetos son del siglo I y del siglo III, los dos aparecieron por accidente —una zanja para un barrio, el patio de una cárcel— y los dos dicen lo mismo con materiales distintos: que hubo un hombre, que lo mataron, y que enseguida hubo gente que se sentó a comer en su nombre y no paró más.</p>
+  </div>
+</section>
+<section class="panel" id="coda" data-section="coda" tabindex="-1" aria-labelledby="h-coda">
+  <header class="panel-head">
+    <p class="eyebrow">Coda</p>
+    <h2 id="h-coda">Coda: lo que habría que excavar</h2>
+  </header>
+  <div class="panel-body">
+<p><strong>Uno.</strong> Antioquía como escena fundacional del puente. Toda política de encuentro —ecuménica, intercultural, entre escuelas de una misma diócesis— se puede reescribir con la pregunta de Gálatas 2: quién se sienta con quién, quién se levanta cuando llegan los de Jerusalén, y quién dice algo en voz alta cuando pasa.</p>
+<p><strong>Dos.</strong> El criterio de incomodidad como método para cualquier vínculo. Lo que uno nunca hubiera inventado del otro es el núcleo confiable del otro. Sirve para leer a Jesús, sirve para leer a un padre muerto, sirve para leer a un colega con el que hace años uno habla poco.</p>
+<p><strong>Tres.</strong> Stark en Merlo-Moreno. Si la pertenencia viaja por redes existentes y no por mensajes al aire, la pastoral de una red de más de veinte escuelas tendría que mapear vínculos antes que producir comunicaciones. Y la peste del siglo III da la otra clave: la comunidad se hizo creíble cuidando a los que no eran suyos, cuando todos los demás se habían ido.</p>
+<p><strong>Cuatro.</strong> Jesús en el aula de Historia, con las fuentes sobre la mesa y sin catequesis. Tácito, Plinio, Josefo con sus interpolaciones marcadas, el clavo de Yehohanan, el criterio de incomodidad. Es el mejor ejercicio de corroboración de fuentes que existe, porque el objeto es el más cargado que hay y los documentos son pocos, tardíos e interesados. Un curso de quinto año puede hacer con eso lo que hace un historiador, y sale sabiendo qué es una fuente.</p>
+  </div>
+</section>
+
+      <footer class="pie">
+        <span>Franco Cattani</span>
+        <span>Un clavo y una mesa</span>
+      </footer>
+    </main>
+  </div>
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const temaBtn = document.getElementById("temaBtn");
+  const tocBtn = document.getElementById("tocBtn");
+  const toc = document.getElementById("toc");
+  const prog = document.getElementById("prog");
+  const panels = Array.from(document.querySelectorAll(".panel"));
+  const links = Array.from(document.querySelectorAll(".toc-link"));
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function currentForced() {
+    return root.getAttribute("data-theme");
+  }
+  function systemDark() {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function isDark() {
+    const t = currentForced();
+    if (t === "dark") return true;
+    if (t === "light") return false;
+    return systemDark();
+  }
+  function syncTemaBtn() {
+    const dark = isDark();
+    temaBtn.setAttribute("aria-pressed", dark ? "true" : "false");
+    temaBtn.textContent = dark ? "Oscuro → claro" : "Claro → oscuro";
+  }
+  function toggleTema() {
+    const t = currentForced();
+    let next;
+    if (t === "dark") next = "light";
+    else if (t === "light") next = "dark";
+    else next = systemDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    syncTemaBtn();
+  }
+  temaBtn.addEventListener("click", toggleTema);
+  syncTemaBtn();
+
+  tocBtn.addEventListener("click", () => {
+    const open = toc.classList.toggle("is-open");
+    tocBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  // Progress
+  function updateProgress() {
+    const el = document.documentElement;
+    const max = el.scrollHeight - el.clientHeight;
+    const p = max > 0 ? (el.scrollTop / max) * 100 : 0;
+    prog.style.width = p.toFixed(2) + "%";
+  }
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+
+  // Panels enter
+  if (reduce) {
+    panels.forEach(p => p.classList.add("is-in"));
+  } else {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add("is-in");
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    panels.forEach(p => io.observe(p));
+  }
+
+  // Active section
+  const ioActive = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const id = e.target.id;
+      links.forEach(a => a.classList.toggle("is-active", a.dataset.section === id));
+    });
+  }, { threshold: 0.35, rootMargin: "-15% 0px -45% 0px" });
+  panels.forEach(p => ioActive.observe(p));
+
+  // Destacado light on scroll
+  const dest = Array.from(document.querySelectorAll(".destacado"));
+  if (reduce) {
+    dest.forEach(d => d.classList.add("is-lit"));
+  } else {
+    const iod = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add("is-lit");
+      });
+    }, { threshold: 0.6 });
+    dest.forEach(d => iod.observe(d));
+  }
+
+  // Keyboard nav
+  function goSection(delta) {
+    const ids = panels.map(p => p.id);
+    const y = window.scrollY + 80;
+    let idx = 0;
+    for (let i = 0; i < panels.length; i++) {
+      if (panels[i].offsetTop <= y) idx = i;
+    }
+    const next = Math.max(0, Math.min(panels.length - 1, idx + delta));
+    const target = panels[next];
+    target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    target.focus({ preventScroll: true });
+  }
+
+  window.addEventListener("keydown", (ev) => {
+    const tag = (ev.target && ev.target.tagName) || "";
+    if (/INPUT|TEXTAREA|SELECT/.test(tag) || ev.target.isContentEditable) return;
+    if (ev.key === "t" || ev.key === "T") {
+      if (!ev.metaKey && !ev.ctrlKey && !ev.altKey) {
+        ev.preventDefault();
+        toggleTema();
+      }
+      return;
+    }
+    if (ev.key === "ArrowDown" || ev.key === "j") {
+      ev.preventDefault();
+      goSection(1);
+    } else if (ev.key === "ArrowUp" || ev.key === "k") {
+      ev.preventDefault();
+      goSection(-1);
+    }
+  });
+
+  // Close mobile toc on link click
+  links.forEach(a => a.addEventListener("click", () => {
+    if (window.matchMedia("(max-width: 979px)").matches) {
+      toc.classList.remove("is-open");
+      tocBtn.setAttribute("aria-expanded", "false");
+    }
+  }));
+})();
+</script>
+</body>
+</html>
